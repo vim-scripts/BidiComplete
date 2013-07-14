@@ -1,0 +1,115 @@
+*BidiComplete.txt*      Insert mode completion that considers text before AND AFTER the cursor.
+
+		       BIDI COMPLETE    by Ingo Karkat
+							    *BidiComplete.vim*
+description			|BidiComplete-description|
+usage				|BidiComplete-usage|
+installation			|BidiComplete-installation|
+configuration			|BidiComplete-configuration|
+limitations			|BidiComplete-limitations|
+known problems			|BidiComplete-known-problems|
+todo				|BidiComplete-todo|
+history				|BidiComplete-history|
+
+==============================================================================
+DESCRIPTION					    *BidiComplete-description*
+
+The built-in insert mode completion |i_CTRL-N| searches for words that start
+with the keyword in front of the cursor. Any text after the cursor is ignored.
+So when you want to replace "MyFunnyVariable" with "MySpecialVariable", you
+have to delete everything after "My", then start completion, which now also
+offers "MySpecialFunction", "MySpecialWhatever", in which you're not
+interested in. If you only removed the "Funny" part, the list of
+(inapplicable) completions would be the same, and you would finally end up
+with "MySpecialVariableVariable", requiring additional edits.
+
+This plugin offers a custom completion function that considers the text after
+the cursor; if there is no keyword immediately after the cursor, it behaves
+like the built-in completion. It even works when there is only text after, but
+not before the cursor, so completion on "|Variable" yields
+"MySpecialVariable", "MyFunnyVariable", etc. The base for completion is
+derived from the string of keyword characters before and after the cursor, so
+set your 'iskeyword' option accordingly.
+
+SOURCE									     *
+
+Original idea by Laszlo Kozma in his paper "Reverse autocomplete"
+    http://www.lkozma.net/autocomplete.html
+
+SEE ALSO								     *
+
+- Check out the |CompleteHelper.vim| plugin page (vimscript #3914) for a full
+  list of insert mode completions powered by it.
+
+==============================================================================
+USAGE							  *BidiComplete-usage*
+
+In insert mode, invoke the bidirectional completion via CTRL-X CTRL-B.
+You can then search forward and backward via CTRL-N / CTRL-P, as usual.
+
+							     *i_CTRL-X_CTRL-B*
+CTRL-X CTRL-B		Find matches for words that start with the keyword in
+			front of the cursor and end with the keyword after the
+			cursor.
+
+==============================================================================
+INSTALLATION					   *BidiComplete-installation*
+
+This script is packaged as a |vimball|. If you have the "gunzip" decompressor
+in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
+the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
+vimball or via the |:UseVimball| command. >
+    vim BidiComplete*.vmb.gz
+    :so %
+To uninstall, use the |:RmVimball| command.
+
+DEPENDENCIES					   *BidiComplete-dependencies*
+
+- Requires Vim 7.0 or higher.
+- Requires the |CompleteHelper.vim| plugin (vimscript #3914).
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.010 or
+  higher.
+
+==============================================================================
+CONFIGURATION					  *BidiComplete-configuration*
+
+For a permanent configuration, put the following commands into your |vimrc|:
+
+			   *b:BidiComplete_complete* *g:BidiComplete_complete*
+Analoguous to the 'complete' option, you can specify which buffers will be
+scanned for completion candidates. Currently, '.' (current buffer), 'w'
+(buffers from other windows), and 'b' (other listed buffers) are supported. >
+    let g:BidiComplete_complete = '.,w,b'
+The global setting can be overridden for a particular buffer
+(b:BidiComplete_complete).
+							  *BidiComplete-remap*
+If you want to use a different mapping, map your keys to the
+<Plug>(BidiComplete) mapping target _before_ sourcing the script (e.g.
+in your |vimrc|): >
+    imap <C-x><C-b> <Plug>(BidiComplete)
+<
+==============================================================================
+LIMITATIONS					    *BidiComplete-limitations*
+
+KNOWN PROBLEMS					 *BidiComplete-known-problems*
+
+TODO							   *BidiComplete-todo*
+
+IDEAS							  *BidiComplete-ideas*
+
+==============================================================================
+HISTORY							*BidiComplete-history*
+
+1.00	14-Jul-2013
+First published version.
+
+0.01	13-Aug-2008
+Started development.
+
+==============================================================================
+Copyright: (C) 2008-2013 Ingo Karkat
+The VIM LICENSE applies to this plugin; see |copyright|.
+
+Maintainer:	Ingo Karkat <ingo@karkat.de>
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:
