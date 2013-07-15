@@ -23,7 +23,7 @@ interested in. If you only removed the "Funny" part, the list of
 (inapplicable) completions would be the same, and you would finally end up
 with "MySpecialVariableVariable", requiring additional edits.
 
-This plugin offers a custom completion function that considers the text after
+This plugin offers a custom completion mapping that considers the text after
 the cursor; if there is no keyword immediately after the cursor, it behaves
 like the built-in completion. It even works when there is only text after, but
 not before the cursor, so completion on "|Variable" yields
@@ -48,9 +48,27 @@ In insert mode, invoke the bidirectional completion via CTRL-X CTRL-B.
 You can then search forward and backward via CTRL-N / CTRL-P, as usual.
 
 							     *i_CTRL-X_CTRL-B*
-CTRL-X CTRL-B		Find matches for words that start with the keyword in
-			front of the cursor and end with the keyword after the
+CTRL-X CTRL-B		Find matches for words that start with the (optional)
+			keyword in front of the cursor and end with the
+			(mandatory) keyword (or non-keyword non-whitespace,
+			either optionally separated by whitespace) after the
 			cursor.
+
+EXAMPLE							*BidiComplete-example*
+(the "|" denotes the cursor)
+
+The B|Complete ~
+    will complete to "BidiComplete"
+The |Complete ~
+    will offer all words ending with "Complete"
+The d|. ~
+    will complete to "dog" if that word ends somewhere with a period (the
+    completion base after the cursor is mandatory, and non-keyword characters
+    are taken, too)
+My | lady ~
+    will complete to "fair" from "fair lady". There's no leading base, as
+    whitespace before the cursor is ignored, but for the mandatory trailing
+    base, " lady" is taken.
 
 ==============================================================================
 INSTALLATION					   *BidiComplete-installation*
@@ -99,6 +117,12 @@ IDEAS							  *BidiComplete-ideas*
 
 ==============================================================================
 HISTORY							*BidiComplete-history*
+
+1.01	15-Jul-2013
+Tweak base algorithm: Enforce base after cursor (without it, the completion
+would be just like the default one), also take non-keyword non-whitespace
+characters there, optionally separated by whitespace. This makes the
+completion useful in more places.
 
 1.00	14-Jul-2013
 First published version.

@@ -11,6 +11,12 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.01.009	15-Jul-2013	Tweak base algorithm: Enforce base after cursor
+"				(without it, the completion would be just like
+"				the default one), also take non-keyword
+"				non-whitespace characters there, optionally
+"				separated by whitespace. This makes the
+"				completion useful in more places.
 "   1.00.008	21-Feb-2013	Move to ingo-library.
 "	007	29-Aug-2012	The number returned by
 "				BidiComplete#GetMatchNum() may be too large when
@@ -41,7 +47,7 @@ endfunction
 
 function! s:Process( match )
     let a:match.abbr = a:match.word
-    let a:match.word = strpart( a:match.word, 0, len( a:match.word) - len(s:remainder) )
+    let a:match.word = strpart(a:match.word, 0, len(a:match.word) - len(s:remainder))
     return a:match
 endfunction
 
@@ -51,24 +57,28 @@ function! BidiComplete#GetMatchNum()
 endfunction
 
 function! BidiComplete#BidiComplete( findstart, base )
+    let s:matchNum = 0
     if a:findstart
 	" Locate the start of the keyword under cursor.
 	let l:startCol = searchpos('\k*\%#', 'bn', line('.'))[1]
 	if l:startCol == 0
-	    let l:startCol = col('.')
+	    let l:startCol = col('.')   " A keyword in front is optional, the real base is after the cursor.
 	endif
 
-	" Remember any remainder of the keyword under cursor.
-	let s:remainder = matchstr( getline('.'), '^\k*', col('.') - 1 )
+	" Remember any remainder of the keyword under cursor, or any
+	" non-whitespace non-keyword characters, either optionally separated by
+	" whitespace.
+	let s:remainder = matchstr(getline('.'), '^\s*\%(\k\+\|\%(\k\@!\S\)\+\)', col('.') - 1)
+	if empty(s:remainder)
+	    return -1   " No base after the cursor.
+	endif
 
 	return l:startCol - 1 " Return byte index, not column.
-    else
+    elseif ! empty(s:remainder)
 	" Find keyword matches starting with a:base and ending in s:remainder.
 	let l:matches = []
-	call CompleteHelper#FindMatches( l:matches, '\V\<' . escape(a:base, '\') . '\k\+' . escape(s:remainder, '\') . '\>' , {'complete': s:GetCompleteOption()} )
-	if ! empty(s:remainder)
-	    call map( l:matches, 's:Process(v:val)' )
-	endif
+	call CompleteHelper#FindMatches(l:matches, '\V\<' . escape(a:base, '\') . '\k\+' . escape(s:remainder, '\') . (s:remainder =~# '\k$' ? '\>' : '') , {'complete': s:GetCompleteOption()})
+	call map(l:matches, 's:Process(v:val)')
 
 	" We may have found the same match in multiple buffers. Vim
 	" automatically consolidates those in the completion, but for counting,
@@ -76,6 +86,8 @@ function! BidiComplete#BidiComplete( findstart, base )
 	let s:matchNum = len(ingo#collections#Unique(map(copy(l:matches), 'v:val.word')))
 
 	return l:matches
+    else
+	return []
     endif
 endfunction
 
